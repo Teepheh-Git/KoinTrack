@@ -1,41 +1,68 @@
 import {StatusBar} from 'expo-status-bar';
 import React, {useEffect, useMemo, useRef, useState} from 'react';
-import {FlatList, SafeAreaView, StyleSheet, Text, View} from 'react-native';
-import {SAMPLE_DATA} from "./assets/data/sampleData";
+import {FlatList, SafeAreaView, StyleSheet, Text, TextInput, View} from 'react-native';
 import ListItem from "./components/ListItem";
 
-import {
-    BottomSheetModal,
-    BottomSheetModalProvider,
-} from '@gorhom/bottom-sheet';
+import {BottomSheetModal, BottomSheetModalProvider,} from '@gorhom/bottom-sheet';
 import Chart from "./components/Chart";
 import {getMarketData} from "./services/cryptoService";
 
 
-const ListHeader = () => (
-    <>
-        <View style={styles.titleWrapper}>
-            <Text style={styles.largeTitle}>Markets</Text>
-        </View>
-        <View style={styles.divider}/>
-    </>
-)
+const ListHeader = () => {
+
+
+    return (
+        <>
+            <View style={styles.titleWrapper}>
+                <Text style={styles.largeTitle}>Markets</Text>
+
+
+            </View>
+            <View style={styles.divider}/>
+        </>
+    )
+
+}
 
 export default function App() {
 
 
-    const [data, setData] = useState([])
+    const [filteredData, setFilteredData] = useState([])
+    const [masterData, setMasterData] = useState([])
     const [selectedCoinData, setSelectedCoinData] = useState(null)
+
+
+    const [searchCoin, setSearchCoin] = useState('')
+
+    // console.log(getMarketData)
+
+    function searchFilter(text) {
+        if (text) {
+            const newData = masterData.filter((item) => {
+                const itemData = item.name ? item.name.toUpperCase() : ' '.toUpperCase()
+                const textData = text.toUpperCase()
+                return itemData.indexOf(textData) > -1
+            })
+            setFilteredData(newData)
+            setSearchCoin(text)
+        } else {
+            setFilteredData(masterData)
+            setSearchCoin(text)
+
+        }
+
+    }
 
     useEffect(() => {
 
         const fetchMarketData = async () => {
             const marketData = await getMarketData()
-            setData(marketData)
+            setFilteredData(marketData)
+            setMasterData(marketData)
+
         }
 
         fetchMarketData();
-
     }, [])
 
 
@@ -50,15 +77,17 @@ export default function App() {
         bottomSheetModalRef.current.present()
     }
 
+
     return (
         <BottomSheetModalProvider>
             <SafeAreaView style={styles.container}>
+
                 <FlatList
                     keyExtractor={(item) => item.id}
-                    data={data}
+                    data={filteredData}
                     renderItem={({item}) => (
                         <ListItem
-                            name={item.name}
+                            name={item.name.toUpperCase()}
                             symbol={item.symbol}
                             currentPrice={item.current_price}
                             priceChangePercentage7d={item.price_change_percentage_7d_in_currency}
@@ -68,7 +97,28 @@ export default function App() {
                             }
                         />
                     )}
-                    ListHeaderComponent={<ListHeader/>}
+                    ListHeaderComponent={
+
+                        <>
+                            <ListHeader/>
+
+                            <TextInput
+                                placeholder={'Search...'}
+                                value={searchCoin}
+                                onChangeText={(text) => searchFilter(text)}
+                                style={{
+                                    borderRadius: 5,
+                                    borderColor: 'blue',
+                                    borderWidth: 0.2,
+                                    height: 30,
+                                    paddingLeft: 10,
+                                    marginHorizontal: 15
+                                }}
+                            />
+
+                        </>
+
+                    }
                 />
 
                 <StatusBar style="auto"/>
@@ -128,5 +178,6 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.25,
         shadowRadius: 4,
         elevation: 5,
+
     },
 });

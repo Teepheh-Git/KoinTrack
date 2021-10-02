@@ -73,7 +73,8 @@ const Chart = ({currentPrice, logoUrl, name, symbol, priceChangePercentage7d, sp
 
 const styles = StyleSheet.create({
     chartWrapper: {
-        marginVertical: 16
+        marginVertical: 16,
+
     },
     titlesWrapper: {
         marginHorizontal: 16
